@@ -14,7 +14,9 @@
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.3.*",
         "symfony/monolog-bundle": "^3.10",
+        "symfony/password-hasher": "7.3.*",
         "symfony/runtime": "7.3.*",
+        "symfony/security-bundle": "7.3.*",
         "symfony/twig-bundle": "7.3.*",
         "symfony/yaml": "7.3.*"
     },
@@ -67,5 +69,9 @@
             "allow-contrib": false,
             "require": "7.3.*"
         }
+    },
+    "require-dev": {
+        "symfony/maker-bundle": "*",
+        "symfony/web-profiler-bundle": "7.3.*"
     }
 }
