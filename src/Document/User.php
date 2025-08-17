@@ -7,7 +7,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ODM\Document(collection: 'users')]
-#[ODM\Index(keys: ['email' => 1], options: ['unique' => true])] // fast lookup + uniqueness
+#[ODM\Index(keys: ['email' => 1], options: ['unique' => true])]
 final class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ODM\Id] 
@@ -105,7 +105,7 @@ final class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getCreatedAt(): ?\DateTimeImmutable { 
         return $this->createdAt; 
     }
-    
+
     public function getUpdatedAt(): ?\DateTimeImmutable { 
         return $this->updatedAt; 
     }
