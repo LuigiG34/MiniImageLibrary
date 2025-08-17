@@ -7,14 +7,16 @@
         "php": ">=8.2",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/mongodb-odm-bundle": "*",
+        "symfony/asset": "7.3.*",
         "symfony/console": "7.3.*",
         "symfony/dotenv": "7.3.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.3.*",
+        "symfony/monolog-bundle": "^3.10",
         "symfony/runtime": "7.3.*",
+        "symfony/twig-bundle": "7.3.*",
         "symfony/yaml": "7.3.*"
-    },
-    "require-dev": {
     },
     "config": {
         "allow-plugins": {
