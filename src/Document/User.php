@@ -8,7 +8,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 
 #[ODM\Document(collection: 'users')]
 #[ODM\Index(keys: ['email' => 1], options: ['unique' => true])]
-final class User implements UserInterface, PasswordAuthenticatedUserInterface
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ODM\Id] 
     private ?string $id = null;
