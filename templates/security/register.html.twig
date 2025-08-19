@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Register</title>
+</head>
+<body>
+  <h1>Register</h1>
+
+  {% for label, msgs in app.flashes %}
+    {% for m in msgs %}
+      <p style="color:{{ label == 'error' ? 'red' : 'green' }}">{{ m }}</p>
+    {% endfor %}
+  {% endfor %}
+
+  <form action="{{ path('register') }}" method="post">
+    <label>Email <input type="email" name="email" required></label><br>
+    <label>Password <input type="password" name="password" required></label><br>
+    <button>Create account</button>
+  </form>
+
+  <p>Already have an account? <a href="{{ path('login') }}">Login</a></p>
+  <p><a href="{{ path('home') }}">Back to gallery</a></p>
+</body>
+</html>
