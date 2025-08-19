@@ -1,8 +1,18 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.3-fpm
 
-RUN apk add --no-cache autoconf g++ make git unzip \
- && pecl install mongodb \
- && docker-php-ext-enable mongodb \
- && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git unzip libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
+        libssl-dev pkg-config libcurl4-openssl-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /var/www/html
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install -j$(nproc) intl zip gd opcache
+
+RUN pecl install mongodb \
+ && docker-php-ext-enable mongodb
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+
+EXPOSE 9000
