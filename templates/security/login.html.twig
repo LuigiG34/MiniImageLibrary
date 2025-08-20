@@ -14,6 +14,10 @@
   <form action="{{ path('login') }}" method="post">
     <label>Email <input type="email" name="_username" value="{{ last_username }}" required></label><br>
     <label>Password <input type="password" name="_password" required></label><br>
+
+    <input type="hidden" name="_csrf_token"
+           value="{{ csrf_token('authenticate') }}"
+    >
     <button>Login</button>
   </form>
 
