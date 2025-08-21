@@ -1,16 +1,59 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
+	<head>
+		<meta charset="utf-8">
+		<title>Mini Image Library</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				margin: 2rem
+			}
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(4, 1fr);
+				gap: 12px
+			}
+			img {
+				max-width: 100%;
+				height: auto;
+				display: block
+			}
+			form {
+				margin: 1rem 0
+			}
+			header {
+				display: flex;
+				gap: 1rem;
+				align-items: center;
+				justify-content: space-between
+			}
+		</style>
+	</head>
+	<body>
+		<header>
+			<h1>Mini Image Library</h1>
+			<nav>
+				{% if app.user %}
+					Logged in as
+					{{ app.user.userIdentifier }}
+					—
+					<a href="{{ path('logout') }}">Logout</a>
+				{% else %}
+					<a href="{{ path('login') }}">Login</a>
+					·
+					<a href="{{ path('register') }}">Register</a>
+				{% endif %}
+			</nav>
+		</header>
 
-        {% block javascripts %}
-        {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+		{% for label, msgs in app.flashes %}
+			{% for m in msgs %}
+				<p style="color:{{ label == 'error' ? 'red' : 'green' }}">{{ m }}</p>
+			{% endfor %}
+		{% endfor %}
+
+		{% block body %}{% endblock %}
+
+
+	</body>
 </html>
