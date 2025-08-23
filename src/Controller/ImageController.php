@@ -169,4 +169,41 @@ final class ImageController extends AbstractController
 
         return $this->redirectToRoute('home');
     }
+
+    #[Route('/delete/{id}', name: 'delete_image', methods: ['GET'])]
+    public function delete(string $id, DocumentManager $dm, Request $request): Response
+    {
+        $repo = $dm->getRepository(Image::class);
+        $image = $repo->find($id);
+
+        if (!$image) {
+            $this->addFlash('error', 'Image not found.');
+            return $this->redirectToRoute('home');
+        }
+
+        // Check authorization
+        if ($image->getOwner() !== $this->getUser()) {
+            $this->addFlash('error', 'You are not authorized to delete this image.');
+            return $this->redirectToRoute('home');
+        }
+
+        try {
+            // Remove the image document from images.files
+            $dm->remove($image);
+
+            // Remove associated chunks from images.chunks using raw MongoDB client
+            $db = $dm->getClient()->selectDatabase($dm->getConfiguration()->getDefaultDB());
+            $chunksCollection = $db->selectCollection('images.chunks');
+            $chunksCollection->deleteMany(['files_id' => new \MongoDB\BSON\ObjectId($id)]);
+
+            // Flush changes to images.files
+            $dm->flush();
+
+            $this->addFlash('success', 'Image deleted successfully.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to delete image: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('home');
+    }
 }
