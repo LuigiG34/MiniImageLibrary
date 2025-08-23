@@ -8,6 +8,15 @@
 		<button>Upload</button>
 	</form>
 
+	<form action="{{ path('search') }}" method="get" style="margin:1rem 0">
+		<input type="text" name="q" value="{{ q|default('') }}" placeholder="search title (regex/contains)">
+		<button>Search</button>
+		{% if q is defined and q %}
+			<a href="{{ path('home') }}" style="margin-left:8px">clear</a>
+		{% endif %}
+	</form>
+
+
 	<div class="grid">
 		{% for img in images %}
 			<figure>

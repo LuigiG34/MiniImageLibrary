@@ -3,13 +3,16 @@
 namespace App\Controller;
 
 use App\Document\Image;
+use App\Document\ImageMetadata;
 use App\Document\User;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Doctrine\ODM\MongoDB\Repository\UploadOptions;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class ImageController extends AbstractController
 {
@@ -23,10 +26,13 @@ final class ImageController extends AbstractController
         $images = $repo->createQueryBuilder()
             ->sort('uploadDate', 'desc')
             ->limit(12)
-            ->getQuery()->execute();
+            ->hydrate(true)
+            ->getQuery()
+            ->execute();
 
         return $this->render('image/index.html.twig', [
-            'images' => $images, 
+            'images' => $images,
+            'q' => "",
         ]);
     }
 
@@ -51,44 +57,43 @@ final class ImageController extends AbstractController
     }
 
     #[Route('/upload', name: 'upload', methods: ['POST'])]
-    public function upload(Request $req, DocumentManager $dm): Response
+    public function upload(Request $request, DocumentManager $dm, ValidatorInterface $validator): Response
     {
-        // Get the uploaded file
-        $file = $req->files->get('file');
+        $file = $request->files->get('file');
         if (!$file) {
             $this->addFlash('error', 'No file provided.');
             return $this->redirectToRoute('home');
         }
 
-        // Get title, tags and mimetype
-        $title = (string)$req->request->get('title', $file->getClientOriginalName());
-        $tags = array_filter(
-            array_map(
-                'trim', 
-                explode(',', 
-                (string)$req->request->get('tags', '')
-                )
-            )
-        );
+        $title = (string) $request->request->get('title', $file->getClientOriginalName());
+        $tags = array_filter(array_map('trim', explode(',', (string) $request->request->get('tags', ''))));
         $mime = $file->getMimeType() ?? 'application/octet-stream';
 
-        // Get Repo
-        $repo = $dm->getRepository(Image::class);
-        // Write the content of the file to GridFS
-        $doc  = $repo->uploadFromFile($file->getRealPath(), $file->getClientOriginalName());
-
-        $doc->setTitle($title);
-        $doc->setTags($tags);
-        $doc->setMime($mime);
-
-        $user = $this->getUser();
-        if ($user instanceof User) {
-            $doc->setOwner($user);
+        $metadata = new ImageMetadata();
+        $metadata->setTitle($title);
+        $metadata->setTags($tags);
+        $metadata->setMime($mime);
+        if ($user = $this->getUser()) {
+            $metadata->setOwner($user);
         }
 
-        $dm->flush();
+        $image = new Image();
+        $image->setMetadata($metadata);
+        $image->setFilename($file->getClientOriginalName());
 
-        $this->addFlash('success', 'Image uploaded.');
+        $errors = $validator->validate($image);
+        if (count($errors) > 0) {
+            $this->addFlash('error', (string) $errors);
+            return $this->redirectToRoute('home');
+        }
+
+        $repo = $dm->getRepository(Image::class);
+        $uploadOptions = new UploadOptions();
+        $uploadOptions->metadata = $metadata;
+
+        $image = $repo->uploadFromFile($file->getRealPath(), $file->getClientOriginalName(), $uploadOptions);
+
+        $this->addFlash('success', 'Image uploaded successfully.');
         return $this->redirectToRoute('home');
     }
 }
