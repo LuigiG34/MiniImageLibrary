@@ -124,4 +124,49 @@ final class ImageController extends AbstractController
             'q' => $q,
         ]);
     }
+
+
+    #[Route('/edit/{id}', name: 'edit_image', methods: ['GET'])]
+    public function edit(string $id, Request $request, DocumentManager $dm, ValidatorInterface $validator): Response
+    {
+        $repo = $dm->getRepository(Image::class);
+        $image = $repo->find($id);
+
+        if (!$image) {
+            $this->addFlash('error', 'Image not found.');
+            return $this->redirectToRoute('home');
+        }
+
+        $title = (string) $request->query->get('title');
+        if (empty($title)) {
+            $this->addFlash('error', 'Title cannot be empty.');
+            return $this->redirectToRoute('home');
+        }
+
+        // Update metadata.title
+        $metadata = $image->getMetadata();
+        $metadata->setTitle($title);
+
+        // Validate
+        $errors = $validator->validate($image);
+        if (count($errors) > 0) {
+            $this->addFlash('error', (string) $errors);
+            return $this->redirectToRoute('home');
+        }
+
+        try {
+            $dm->createQueryBuilder(Image::class)
+                ->findAndUpdate()
+                ->field('id')->equals($id)
+                ->field('metadata.title')->set($title)
+                ->getQuery()
+                ->execute();
+
+            $this->addFlash('success', 'Image title updated successfully.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to update title: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('home');
+    }
 }

@@ -22,7 +22,7 @@
 			<figure>
 				<img src="{{ path('file_raw', {id: img.id}) }}" alt="{{ img.title }}">
 				<figcaption>
-					<strong>{{ img.title }}</strong><br>
+					<strong>{{ img.title }} #{{img.id}}</strong><br>
 					<small>
 						{{ img.tags|join(', ') }}
 						{% if img.owner %}
