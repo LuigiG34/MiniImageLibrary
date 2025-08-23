@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use MongoDB\BSON\Regex;
 
 final class ImageController extends AbstractController
 {
@@ -95,5 +96,32 @@ final class ImageController extends AbstractController
 
         $this->addFlash('success', 'Image uploaded successfully.');
         return $this->redirectToRoute('home');
+    }
+
+    #[Route('/search', name: 'search', methods: ['GET'])]
+    public function search(Request $req, DocumentManager $dm): Response
+    {
+        $q = trim((string) $req->query->get('q', ''));
+
+        // Get repo  + Create query
+        $qb = $dm->getRepository(Image::class)
+            ->createQueryBuilder()
+            ->sort('uploadDate', 'desc')
+            ->limit(24);
+
+        if ($q !== '') {
+            // case-insensitive match on title stored in metadata
+            $qb->field('metadata.title')->equals(new Regex($q, 'i'));
+
+            // also match tags
+            $qb->addOr($qb->expr()->field('metadata.tags')->equals(new Regex($q, 'i')));
+        }
+
+        $images = $qb->getQuery()->execute();
+
+        return $this->render('image/index.html.twig', [
+            'images' => $images,
+            'q' => $q,
+        ]);
     }
 }
